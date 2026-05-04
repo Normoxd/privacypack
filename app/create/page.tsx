@@ -68,20 +68,28 @@ export default function App() {
     );
     const canExport = selectedPack.length > 0;
 
+    const clearTouchTrigger = () => {
+        touchKeyRef.current = null;
+    };
+
     const getTouchTriggerHandlers = (key: string) => ({
-        onPointerDown: (e: React.PointerEvent<HTMLButtonElement>) => {
-            if (e.pointerType === "touch") {
-                // prevent Radix from opening immediately on pointerdown
-                e.preventDefault();
-                touchKeyRef.current = key;
-            }
+        onTouchStart: () => {
+            touchKeyRef.current = key;
         },
-        onClick: () => {
-            // only toggle if this was a true tap
-            if (touchKeyRef.current === key) {
-                setOpenKey((prev) => (prev === key ? null : key));
+        onTouchCancel: clearTouchTrigger,
+        onClick: (event: React.MouseEvent<HTMLButtonElement>) => {
+            const nativeEvent = event.nativeEvent as MouseEvent & {
+                pointerType?: string;
+            };
+
+            if (
+                nativeEvent.pointerType === "touch" ||
+                touchKeyRef.current === key
+            ) {
+                event.preventDefault();
+                setOpenKey(key);
+                clearTouchTrigger();
             }
-            touchKeyRef.current = null;
         },
     });
 
@@ -221,7 +229,7 @@ export default function App() {
 
     return (
         <>
-            <div className="flex w-full flex-col p-4 pb-36 sm:pb-4">
+            <div className="flex w-full flex-col p-4 pb-[calc(9rem+env(safe-area-inset-bottom))] sm:pb-4">
                 <div className="flex w-full flex-row items-center justify-between md:px-4 md:pt-4">
                     <Link
                         href="/"
@@ -234,9 +242,12 @@ export default function App() {
                             href="https://github.com/ente-io/privacypack?tab=readme-ov-file#add-a-missing-app"
                             target="_blank"
                             rel="noopener"
-                            className="text-sm text-[#868686] underline decoration-[#525252] underline-offset-4 hover:text-white hover:decoration-white"
+                            className="text-sm whitespace-nowrap text-[#868686] underline decoration-[#525252] underline-offset-4 hover:text-white hover:decoration-white"
                         >
-                            Add a missing app
+                            <span className="xs:hidden">Add app</span>
+                            <span className="xs:inline hidden">
+                                Add a missing app
+                            </span>
                         </a>
                         <button
                             onClick={runShare}
@@ -534,9 +545,7 @@ export default function App() {
                                                             key={
                                                                 private_alternative.id
                                                             }
-                                                            checked={
-                                                                isSelected
-                                                            }
+                                                            checked={isSelected}
                                                             disabled={
                                                                 isDisabled
                                                             }
@@ -621,7 +630,7 @@ export default function App() {
                     })}
                 </div>
 
-                <div className="fixed inset-x-0 bottom-0 z-40 flex flex-col gap-3 border-t border-white/10 bg-[#161616]/95 p-4 sm:hidden">
+                <div className="fixed inset-x-0 bottom-0 z-40 flex flex-col gap-3 border-t border-white/10 bg-[#161616] p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:hidden">
                     <button
                         onClick={runShare}
                         disabled={!canExport || isExporting}

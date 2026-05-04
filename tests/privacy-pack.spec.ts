@@ -114,11 +114,7 @@ test("private alternative picker presents a multi-select menu", async ({
 }) => {
     await page.goto("/create");
 
-    await page
-        .locator("button")
-        .filter({ hasText: "[Pick]" })
-        .first()
-        .click();
+    await page.locator("button").filter({ hasText: "[Pick]" }).first().click();
 
     await expect(page.getByText("Private alternatives")).toBeVisible();
     await expect(page.getByText("0/3").last()).toBeVisible();
@@ -168,8 +164,9 @@ test("export card uses JetBrains Mono for rendered text", async ({ page }) => {
     expect(fontInfo.bodyFont).toContain("jetBrainsMono");
     expect(fontInfo.exportFont).toContain("jetBrainsMono");
     expect(fontInfo.jetBrainsLoaded).toBe(true);
-    expect(fontInfo.fontFaceRules.some((rule) => rule.includes("@font-face")))
-        .toBe(true);
+    expect(
+        fontInfo.fontFaceRules.some((rule) => rule.includes("@font-face")),
+    ).toBe(true);
 });
 
 test("selecting a private alternative enables desktop export controls", async ({
@@ -282,4 +279,45 @@ test("mobile layout keeps export controls visible and disabled until selection",
 
     await expect(page.locator("#share-mobile")).toBeEnabled();
     await expect(page.locator("#download-mobile")).toBeEnabled();
+});
+
+test("touch users can open and select a private alternative on mobile", async ({
+    browser,
+}) => {
+    const context = await browser.newContext({
+        baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000",
+        viewport: { width: 320, height: 740 },
+        isMobile: true,
+        hasTouch: true,
+        deviceScaleFactor: 2,
+    });
+
+    try {
+        const page = await context.newPage();
+
+        await page.goto("/create");
+        await page.waitForLoadState("domcontentloaded");
+        await page.waitForTimeout(500);
+        await page
+            .locator("button")
+            .filter({ hasText: "[Pick]" })
+            .first()
+            .tap();
+        await expect(
+            page.getByRole("menuitemcheckbox").filter({
+                hasText: "Proton Mail",
+            }),
+        ).toBeVisible();
+
+        await page
+            .getByRole("menuitemcheckbox")
+            .filter({ hasText: "Proton Mail" })
+            .tap();
+        await page.keyboard.press("Escape");
+
+        await expect(page.locator("#share-mobile")).toBeEnabled();
+        await expect(page.locator("#download-mobile")).toBeEnabled();
+    } finally {
+        await context.close();
+    }
 });
