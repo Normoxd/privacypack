@@ -155,6 +155,7 @@
                 { "id": "mailbox", "name": "mailbox.org" },
                 { "id": "nextcloud", "name": "Nextcloud" },
                 { "id": "proton_drive", "name": "Proton Drive" },
+                { "id": "tuta_drive", "name": "Tuta Drive" },
                 { "id": "tresorit", "name": "Tresorit" },
                 { "id": "filen", "name": "Filen" },
                 { "id": "icloud", "name": "iCloud" },
